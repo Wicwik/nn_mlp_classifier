@@ -1,9 +1,11 @@
 # Neural Networks (2-AIN-132/15), FMFI UK BA
-# (c) Tomas Kuzma, Juraj Holas, Peter Gergel, Endre Hamerlik, Štefan Pócoš, Iveta Bečková 2017-2022
+# (c) Tomas Kuzma, Juraj Holas, Peter Gergel, Endre Hamerlik, Stefan Pocos, Iveta Bečková 2017-2022
 
 import numpy as np
 
 from util import *
+
+
 
 class MLP():
     '''
@@ -18,8 +20,8 @@ class MLP():
         self.dim_hid = dim_hid
         self.dim_out = dim_out
 
-        self.W_hid = np.random.randn(self.dim_hid, self.dim_in+1)
-        self.W_out = np.random.randn(self.dim_out, self.dim_hid+1)
+        self.W_hid = np.random.randn(dim_hid, dim_in + 1)
+        self.W_out = np.random.randn(dim_out, dim_hid + 1)
 
 
     # Activation functions & derivations
@@ -45,10 +47,10 @@ class MLP():
         Forward pass - compute output of network
         x: single input vector (without bias, size=dim_in)
         '''
-        a = self.W_hid@add_bias(x) 
-        h = self.f_hid(a) 
-        b = self.W_out@add_bias(h)  
-        y = self.f_out(b)  
+        a = self.W_hid @ add_bias(x)
+        h = self.f_hid(a)
+        b = self.W_out @ add_bias(h)
+        y = self.f_out(b)
 
         return a, h, b, y
 
@@ -64,14 +66,10 @@ class MLP():
         d: single target vector (size=dim_out)
         '''
 
-        # FIXME (Project only) - a significant speedup can be achieved by calculating g_out and g_hid
-        #  using only matrix operations with no cycles. Do it as the part of the first project.
-        g_out = np.zeros(self.dim_out)
-        for i in range(self.dim_out):
-            g_out[i] = (d[i]-y[i]) * self.df_out(b[i])
-        g_hid = np.zeros(self.dim_hid)
-        for k in range(self.dim_hid):
-            g_hid[k] = (np.sum(self.W_out[:, k] * g_out)) * self.df_hid(a[k])
+        g_out = (d - y) * self.df_out(b)
+
+
+        g_hid = self.W_out[:, :20].T@g_out * self.df_hid(a)
 
         dW_out = np.outer(g_out, add_bias(h))
         dW_hid = np.outer(g_hid, add_bias(x))
