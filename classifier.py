@@ -10,9 +10,12 @@ from util import *
 
 class MLPClassifier(MLP):
 
-    def __init__(self, dim_in, dim_hid, n_classes, w_init='gauss', optimizer='sgd', ):
+    def __init__(self, dim_in, dim_hid, n_classes, w_init='gauss', optimizer='sgd', f_hid='relu', f_out='sigmoid'):
         self.n_classes = n_classes
         self.optimizer = optimizer
+        self.f_hid_selected = f_hid
+        self.f_out_selected = f_out
+
         super().__init__(dim_in, dim_hid, dim_out=n_classes, w_init=w_init, optimizer=optimizer)
 
 
@@ -26,19 +29,35 @@ class MLPClassifier(MLP):
 
     # @override
     def f_hid(self, x):
-        return x * (x > 0)
+        if f_hid_selected == 'relu':
+            return x * (x > 0)
+        elif f_hid_selected == 'sigmoid':
+            return 1 / (1 + np.exp(-x))
+        elif f_hid_selected == 'tanh':
+            return np.tanh(x)
 
     # @override
     def df_hid(self, x):
-        return 1. * (x > 0)
+        if f_hid_selected == 'relu':
+            return 1. * (x > 0)
+        elif f_hid_selected == 'sigmoid':
+            return self.f_hid(x)*(1 - self.f_hid(x)) 
+        elif f_hid_selected == 'tanh'
+            return 1 - np.tanh(x)**2
 
     # @override
     def f_out(self, x):
-        return 1 / (1 + np.exp(-x))
+        if f_out_selected == 'sigmoid':
+            return 1 / (1 + np.exp(-x))
+        elif f_out_selected == 'linear':
+            return x
 
     # @override
     def df_out(self, x):
-        return self.f_out(x)*(1 - self.f_out(x)) 
+        if f_out_selected == 'sigmoid':
+            return self.f_out(x)*(1 - self.f_out(x)) 
+        elif f_out_selected == 'linear':
+            return 1
 
 
     def minibatches(self, inputs, targets, batchsize, shuffle=False):

@@ -49,7 +49,7 @@ best_model_validCE = np.inf
 
 for idx,conf in enumerate(configs):
 	# Model creation
-	model = MLPClassifier(dim_in=dim, dim_hid=conf['dim_hid'], w_init=conf['w_init'], optimizer=conf['optimizer'], n_classes=np.max(labels)+1)
+	model = MLPClassifier(dim_in=dim, dim_hid=conf['dim_hid'], w_init=conf['w_init'], optimizer=conf['optimizer'], f_hid=conf['f_hid'], f_out=conf['f_out'] n_classes=np.max(labels)+1)
 
 	decay = None
 	if conf['lr_schedule']:
