@@ -1,3 +1,4 @@
+# This file was adopted from NN seminars and changed (to fit project purposes) by Robert Belanec
 # Neural Networks (2-AIN-132/15), FMFI UK BA
 # (c) Tomas Kuzma, Juraj Holas, Peter Gergel, Endre Hamerlik, Stefan Pocos, Iveta Bečková 2017-2022
 
@@ -6,13 +7,12 @@ import numpy as np
 from util import *
 
 
-
 class MLP():
     '''
     Multi-Layer Perceptron (abstract base class)
     '''
 
-    def __init__(self, dim_in, dim_hid, dim_out):
+    def __init__(self, dim_in, dim_hid, dim_out, w_init='gauss', optimizer='sgd'):
         '''
         Initialize model, set initial weights
         '''
@@ -20,9 +20,13 @@ class MLP():
         self.dim_hid = dim_hid
         self.dim_out = dim_out
 
-        self.W_hid = np.random.randn(dim_hid, dim_in + 1)
-        self.W_out = np.random.randn(dim_out, dim_hid + 1)
+        if w_init == 'gauss':
+            self.W_hid = np.random.randn(dim_hid, dim_in + 1)
+            self.W_out = np.random.randn(dim_out, dim_hid + 1)
 
+        elif w_init == 'uniform':
+            self.W_hid = np.random.rand(dim_hid, dim_in + 1)
+            self.W_out = np.random.rand(dim_out, dim_hid + 1)
 
     # Activation functions & derivations
     # (not implemented, to be overriden in derived classes)
@@ -37,7 +41,6 @@ class MLP():
 
     def df_out(self, x):
         raise NotImplementedError
-
 
 
     # Back-propagation
@@ -69,9 +72,29 @@ class MLP():
         g_out = (d - y) * self.df_out(b)
 
 
-        g_hid = self.W_out[:, :20].T@g_out * self.df_hid(a)
+        g_hid = self.W_out[:, :self.dim_hid].T@g_out * self.df_hid(a)
 
-        dW_out = np.outer(g_out, add_bias(h))
-        dW_hid = np.outer(g_hid, add_bias(x))
+        dW_out = np.dot(add_bias(h), g_out.T).T
+        dW_hid = np.dot(add_bias(x), g_hid.T).T
 
         return dW_hid, dW_out
+
+    # not working yet :(
+    def backward_adam(self, x, a, h, b, y, d, ep, beta1, beta2, epsilon):
+        g_out = (d - y) * self.df_out(b)
+        g_hid = self.W_out[:, :self.dim_hid].T@g_out * self.df_hid(a)
+
+        m_dW_hid, m_dW_out, v_dW_hid, v_dW_out = 0, 0, 0, 0
+
+        m_dW_hid = beta1*m_dW_hid + (1-beta1)*g_hid
+        m_dW_out = beta1*m_dW_out + (1-beta1)*g_out
+
+        v_dW_hid = beta2*v_dW_hid + (1-beta2)*(g_hid**2)
+        v_dW_out = beta2*v_dW_out + (1-beta2)*(g_out)
+
+        m_dW_hid_corr = np.dot(add_bias(x), (m_dW_hid/(1-beta1**ep)).T).T
+        m_dW_out_corr = np.dot(add_bias(h), (m_dW_out/(1-beta1**ep)).T).T
+        v_dW_hid_corr = np.dot(add_bias(x), (v_dW_hid/(1-beta2**ep)).T).T
+        v_dW_out_corr = np.dot(add_bias(h), (v_dW_out/(1-beta2**ep)).T).T
+
+        return m_dW_hid_corr, m_dW_out_corr, v_dW_hid_corr, v_dW_out_corr

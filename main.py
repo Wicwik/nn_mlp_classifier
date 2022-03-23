@@ -4,16 +4,23 @@ import random
 from classifier import *
 from util import *
 
+
+CONFIG_FILE = 'hyperparameters.json'
+
+# Load and normalize train data
 inputs, labels = read_data('2d.trn.dat')
+(dim, count) = inputs.shape
+
 inputs -= inputs.mean(axis=1, keepdims=True)
 inputs /= inputs.std(axis=1, keepdims=True)
 
+# Load and normalize test data
 test_inputs, test_labels = read_data('2d.tst.dat')
 test_inputs -= test_inputs.mean(axis=1, keepdims=True)
 test_inputs /= test_inputs.std(axis=1, keepdims=True)
 
-(dim, count) = inputs.shape
 
+# Split train data to train and validation (20% of train data is validation)
 indices = np.arange(count)
 random.shuffle(indices)
 split = int(0.8*count)
@@ -32,18 +39,48 @@ print('train_inputs: {} train_labels: {}'.format(train_inputs.shape, train_label
 print('valid_inputs: {} valid_labels: {}'.format(valid_inputs.shape, valid_labels.shape))
 print('test_inputs: {} test_labels: {}'.format(test_inputs.shape, test_labels.shape))
 
-plot_dots(train_inputs, train_labels, None, test_inputs, test_labels, None)
+# Get some idea abot the data, by ploting it
+plot_dots(train_inputs, train_labels, None, test_inputs, test_labels, None, filename='all_data.png')
 
-model = MLPClassifier(dim_in=dim, dim_hid=20, n_classes=np.max(labels)+1)
+configs = get_hyperparameter_configurations(CONFIG_FILE)
+models = []
+best_model_index = None
+best_model_validCE = np.inf
 
-trainCEs, trainREs = model.train(train_inputs, train_labels, alpha=0.1, eps=200, live_plot=False, live_plot_interval=25)
+for idx,conf in enumerate(configs):
+	# Model creation
+	model = MLPClassifier(dim_in=dim, dim_hid=conf['dim_hid'], w_init=conf['w_init'], optimizer=conf['optimizer'], n_classes=np.max(labels)+1)
 
+	decay = None
+	if conf['lr_schedule']:
+		decay = conf['alpha']/conf['eps']
+
+	# Training
+	print('\nTraining of {}. model:'.format(idx+1))
+	trainCEs, trainREs = model.train(train_inputs, train_labels, alpha=conf['alpha'], eps=conf['eps'], batchsize=conf['batchsize'], decay=decay)
+
+	# Validation of the hyperparameters
+	validCE, validRE = model.test(valid_inputs, valid_labels)
+
+	print('{}. model valid error: CE = {:6.2%}, RE = {:.5f}'.format(idx+1, validCE, validRE))
+	plot_both_errors(trainCEs, trainREs, validCE, validRE, block=False, filename='model_{}_errors.png'.format(idx+1))
+
+	models.append((model, {'train_err': (trainCEs, trainREs), 'valid_err': (validCE, validRE)}))
+
+	if (validCE < best_model_validCE):
+		best_model_index = idx
+		best_model_validCE = validCE
+
+
+print('{}. model had the best validation score of CE = {:6.2%}, RE = {:.5f}.'.format(best_model_index+1, models[best_model_index][1]['valid_err'][0], models[best_model_index][1]['valid_err'][1]))
+model = models[best_model_index][0]
+
+# Final testing of the best model
 testCE, testRE = model.test(test_inputs, test_labels)
 print('Final testing error: CE = {:6.2%}, RE = {:.5f}'.format(testCE, testRE))
 
 _, train_predicted = model.predict(train_inputs)
 _, test_predicted  = model.predict(test_inputs)
 
-plot_dots(train_inputs, train_labels, train_predicted, test_inputs, test_labels, test_predicted, block=False)
-plot_dots(None, None, None, test_inputs, test_labels, test_predicted, title='Test data only', block=False)
-plot_both_errors(trainCEs, trainREs, testCE, testRE, block=False)
+plot_dots(train_inputs, train_labels, train_predicted, test_inputs, test_labels, test_predicted, block=False, filename='all_data_predicted.png')
+plot_dots(None, None, None, test_inputs, test_labels, test_predicted, title='Test data only', block=False, filename='test_data_predicted.png')

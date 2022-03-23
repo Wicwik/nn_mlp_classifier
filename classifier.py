@@ -1,3 +1,4 @@
+# This file was adopted from NN seminars and changed (to fit project purposes) by Robert Belanec
 # Neural Networks (2-AIN-132/15), FMFI UK BA
 # (c) Tomas Kuzma, Juraj Holas, Peter Gergel, Endre Hamerlik, Stefan Pocos, Iveta Bečková 2017-2022
 
@@ -9,18 +10,19 @@ from util import *
 
 class MLPClassifier(MLP):
 
-    def __init__(self, dim_in, dim_hid, n_classes):
+    def __init__(self, dim_in, dim_hid, n_classes, w_init='gauss', optimizer='sgd', ):
         self.n_classes = n_classes
-        super().__init__(dim_in, dim_hid, dim_out=n_classes)
+        self.optimizer = optimizer
+        super().__init__(dim_in, dim_hid, dim_out=n_classes, w_init=w_init, optimizer=optimizer)
 
 
     # Activation functions & derivations
 
-    def error(self, targets, outputs): # new
+    def error(self, targets, outputs):
         '''
         Cost / loss / error function
         '''
-        return np.sum((targets - outputs)**2, axis=0)
+        return np.sum((targets - outputs)**2)
 
     # @override
     def f_hid(self, x):
@@ -37,6 +39,20 @@ class MLPClassifier(MLP):
     # @override
     def df_out(self, x):
         return self.f_out(x)*(1 - self.f_out(x)) 
+
+
+    def minibatches(self, inputs, targets, batchsize, shuffle=False):
+        assert inputs.shape[1] == targets.shape[1]
+
+        if shuffle:
+            indices = np.arange(inputs.shape[1])
+
+        for start_idx in range(0, inputs.shape[1] - batchsize + 1, batchsize):
+            if shuffle:
+                excerpt = indices[start_idx:start_idx + batchsize]
+            else:
+                excerpt = slice(start_idx, start_idx + batchsize)
+            yield inputs[:, excerpt], targets[:, excerpt], excerpt
 
 
 
@@ -64,7 +80,7 @@ class MLPClassifier(MLP):
         return CE, RE
 
 
-    def train(self, inputs, labels, alpha=0.1, eps=100, live_plot=False, live_plot_interval=10):
+    def train(self, inputs, labels, alpha=0.1, eps=100, batchsize=100, decay=None, beta1=0.9, beta2=0.999, epsilon=10e-08, live_plot=False, live_plot_interval=10):
         '''
         Training of the classifier
         inputs: matrix of input vectors (each column is one input vector)
@@ -87,23 +103,34 @@ class MLPClassifier(MLP):
             CE = 0
             RE = 0
 
-            for idx in np.random.permutation(count):
-                x = inputs[:, idx]
-                d = targets[:, idx]
+            for batch in self.minibatches(inputs, targets, batchsize):
+                x, d, idx = batch
 
                 a, h, b, y = self.forward(x)
-                dW_hid, dW_out = self.backward(x, a, h, b, y, d)
 
-                self.W_hid += alpha * dW_hid
-                self.W_out += alpha * dW_out
+                if self.optimizer == 'sgd':
+                    dW_hid, dW_out = self.backward(x, a, h, b, y, d)
 
-                CE += labels[idx] != onehot_decode(y)
+                    self.W_hid += alpha * dW_hid
+                    self.W_out += alpha * dW_out
+
+                elif self.optimizer == 'adam':
+                    m_dW_hid_corr, m_dW_out_corr, v_dW_hid_corr, v_dW_out_corr = self.backward_adam(x, a, h, b, y, d, ep, beta1, beta2, epsilon)
+
+                    self.W_hid -= alpha*(m_dW_hid_corr/(np.sqrt(v_dW_hid_corr)+epsilon))
+                    self.W_out -= alpha*(m_dW_out_corr/(np.sqrt(v_dW_out_corr)+epsilon))
+
+                CE += sum(labels[idx] != onehot_decode(y))
                 RE += self.error(d, y)
 
             CE /= count
             RE /= count
             CEs.append(CE)
             REs.append(RE)
+
+            if decay is not None:
+                alpha = alpha * 1/(1 + decay * ep)
+
             if (ep+1) % 5 == 0: print('Epoch {:3d}/{}, CE = {:6.2%}, RE = {:.5f}'.format(ep+1, eps, CE, RE))
 
             if live_plot and ((ep+1) % live_plot_interval == 0):
@@ -116,6 +143,5 @@ class MLPClassifier(MLP):
         if live_plot:
             interactive_off()
 
-        print()
 
         return CEs, REs

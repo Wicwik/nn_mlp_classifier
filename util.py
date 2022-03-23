@@ -1,3 +1,4 @@
+# This file was adopted from NN seminars and changed (to fit project purposes) by Robert Belanec
 # Neural Networks (2-AIN-132/15), FMFI UK BA
 # (c) Tomas Kuzma, Juraj Holas, Peter Gergel, Endre Hamerlik, Stefan Pocos, Iveta Bečková 2017-2022
 
@@ -13,6 +14,7 @@ import atexit
 import os
 import time
 import functools
+import json
 
 
 ## Utilities
@@ -143,8 +145,9 @@ def plot_errors(title, errors, test_error=None, block=True):
     plt.show(block=block)
 
 
-def plot_both_errors(trainCEs, trainREs, testCE=None, testRE=None, pad=None, block=True):
-    plt.figure(2)
+def plot_both_errors(trainCEs, trainREs, testCE=None, testRE=None, pad=None, figsize=(1918, 1025), block=True, filename=None):
+    px = 1/plt.rcParams['figure.dpi']
+    fig = plt.figure(2, figsize=tuple(i*px for i in figsize))
     use_keypress()
     plt.clf()
 
@@ -175,11 +178,15 @@ def plot_both_errors(trainCEs, trainREs, testCE=None, testRE=None, pad=None, blo
     plt.gcf().canvas.set_window_title('Error metrics')
     plt.legend()
 
+    if filename is not None:
+        plt.savefig(filename, dpi=fig.dpi)
+
     plt.show(block=block)
 
 
-def plot_dots(inputs, labels=None, predicted=None, test_inputs=None, test_labels=None, test_predicted=None, s=60, i_x=0, i_y=1, title=None, block=True):
-    plt.figure(title or 3)
+def plot_dots(inputs, labels=None, predicted=None, test_inputs=None, test_labels=None, test_predicted=None, s=60, i_x=0, i_y=1, title=None, figsize=(1918, 1025), block=True, filename=None):
+    px = 1/plt.rcParams['figure.dpi']
+    fig = plt.figure(title or 3, figsize=tuple(i*px for i in figsize))
     use_keypress()
     plt.clf()
 
@@ -227,6 +234,10 @@ def plot_dots(inputs, labels=None, predicted=None, test_inputs=None, test_labels
     if title is not None:
         plt.gcf().canvas.set_window_title(title)
     plt.tight_layout()
+
+    if filename is not None:
+        plt.savefig(filename, dpi=fig.dpi)
+
     plt.show(block=block)
 
 
@@ -285,3 +296,11 @@ def read_data(filepath):
     _, labels = np.unique(labels, return_inverse=True)
     
     return inputs.T, labels
+
+def get_hyperparameter_configurations(json_filepath):
+    data = None
+
+    with open(json_filepath) as f:
+        data = json.load(f)
+
+    return data
