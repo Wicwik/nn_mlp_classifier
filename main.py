@@ -75,7 +75,10 @@ model = models[best_model_index][0]
 
 # Final testing of the best model
 testCE, testRE = model.test(test_inputs, test_labels)
+
 print('Final testing error: CE = {:6.2%}, RE = {:.5f}'.format(testCE, testRE))
+with open('test_results.txt', 'a') as f:
+	f.write('Final testing error: CE = {:6.2%}, RE = {:.5f}'.format(testCE, testRE))
 
 _, train_predicted = model.predict(train_inputs)
 _, test_predicted  = model.predict(test_inputs)
