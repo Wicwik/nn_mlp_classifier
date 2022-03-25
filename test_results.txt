@@ -1,1 +1,1 @@
-Final testing error: CE =  2.90%, RE = 0.01464
+Final testing error: CE =  2.80%, RE = 0.01464
