@@ -28,6 +28,10 @@ class MLP():
             self.W_hid = np.random.rand(dim_hid, dim_in + 1)
             self.W_out = np.random.rand(dim_out, dim_hid + 1)
 
+
+        if optimizer == 'adam':
+            self.m_dW_hid, self.m_dW_out, self.v_dW_hid, self.v_dW_out = 0, 0, 0, 0
+
     # Activation functions & derivations
     # (not implemented, to be overriden in derived classes)
     def f_hid(self, x):
@@ -83,18 +87,20 @@ class MLP():
     def backward_adam(self, x, a, h, b, y, d, ep, beta1, beta2, epsilon):
         g_out = (d - y) * self.df_out(b)
         g_hid = self.W_out[:, :self.dim_hid].T@g_out * self.df_hid(a)
+        
+        dW_out = np.dot(add_bias(h), g_out.T).T
+        dW_hid = np.dot(add_bias(x), g_hid.T).T        
 
-        m_dW_hid, m_dW_out, v_dW_hid, v_dW_out = 0, 0, 0, 0
+        self.m_dW_out = beta1*self.m_dW_out + (1-beta1)*dW_out
+        self.m_dW_hid = beta1*self.m_dW_hid + (1-beta1)*dW_hid
 
-        m_dW_hid = beta1*m_dW_hid + (1-beta1)*g_hid
-        m_dW_out = beta1*m_dW_out + (1-beta1)*g_out
+        self.v_dW_out = beta2*self.v_dW_out + (1-beta2)*(dW_out**2)
+        self.v_dW_hid = beta2*self.v_dW_hid + (1-beta2)*(dW_hid**2)
 
-        v_dW_hid = beta2*v_dW_hid + (1-beta2)*(g_hid**2)
-        v_dW_out = beta2*v_dW_out + (1-beta2)*(g_out)
-
-        m_dW_hid_corr = np.dot(add_bias(x), (m_dW_hid/(1-beta1**ep)).T).T
-        m_dW_out_corr = np.dot(add_bias(h), (m_dW_out/(1-beta1**ep)).T).T
-        v_dW_hid_corr = np.dot(add_bias(x), (v_dW_hid/(1-beta2**ep)).T).T
-        v_dW_out_corr = np.dot(add_bias(h), (v_dW_out/(1-beta2**ep)).T).T
-
+        m_dW_out_corr = self.m_dW_out/(1-beta1**ep)
+        m_dW_hid_corr = self.m_dW_hid/(1-beta1**ep)
+        
+        v_dW_out_corr = self.v_dW_out/(1-beta2**ep)
+        v_dW_hid_corr = self.v_dW_hid/(1-beta2**ep)
+        
         return m_dW_hid_corr, m_dW_out_corr, v_dW_hid_corr, v_dW_out_corr

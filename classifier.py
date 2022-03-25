@@ -29,34 +29,34 @@ class MLPClassifier(MLP):
 
     # @override
     def f_hid(self, x):
-        if f_hid_selected == 'relu':
+        if self.f_hid_selected == 'relu':
             return x * (x > 0)
-        elif f_hid_selected == 'sigmoid':
+        elif self.f_hid_selected == 'sigmoid':
             return 1 / (1 + np.exp(-x))
-        elif f_hid_selected == 'tanh':
+        elif self.f_hid_selected == 'tanh':
             return np.tanh(x)
 
     # @override
     def df_hid(self, x):
-        if f_hid_selected == 'relu':
+        if self.f_hid_selected == 'relu':
             return 1. * (x > 0)
-        elif f_hid_selected == 'sigmoid':
+        elif self.f_hid_selected == 'sigmoid':
             return self.f_hid(x)*(1 - self.f_hid(x)) 
-        elif f_hid_selected == 'tanh'
+        elif self.f_hid_selected == 'tanh':
             return 1 - np.tanh(x)**2
 
     # @override
     def f_out(self, x):
-        if f_out_selected == 'sigmoid':
+        if self.f_out_selected == 'sigmoid':
             return 1 / (1 + np.exp(-x))
-        elif f_out_selected == 'linear':
+        elif self.f_out_selected == 'linear':
             return x
 
     # @override
     def df_out(self, x):
-        if f_out_selected == 'sigmoid':
+        if self.f_out_selected == 'sigmoid':
             return self.f_out(x)*(1 - self.f_out(x)) 
-        elif f_out_selected == 'linear':
+        elif self.f_out_selected == 'linear':
             return 1
 
 
@@ -134,10 +134,10 @@ class MLPClassifier(MLP):
                     self.W_out += alpha * dW_out
 
                 elif self.optimizer == 'adam':
-                    m_dW_hid_corr, m_dW_out_corr, v_dW_hid_corr, v_dW_out_corr = self.backward_adam(x, a, h, b, y, d, ep, beta1, beta2, epsilon)
+                    m_dW_hid_corr, m_dW_out_corr, v_dW_hid_corr, v_dW_out_corr = self.backward_adam(x, a, h, b, y, d, ep+1, beta1, beta2, epsilon)
 
-                    self.W_hid -= alpha*(m_dW_hid_corr/(np.sqrt(v_dW_hid_corr)+epsilon))
-                    self.W_out -= alpha*(m_dW_out_corr/(np.sqrt(v_dW_out_corr)+epsilon))
+                    self.W_hid += alpha*(m_dW_hid_corr/(np.sqrt(v_dW_hid_corr)+epsilon))
+                    self.W_out += alpha*(m_dW_out_corr/(np.sqrt(v_dW_out_corr)+epsilon))
 
                 CE += sum(labels[idx] != onehot_decode(y))
                 RE += self.error(d, y)

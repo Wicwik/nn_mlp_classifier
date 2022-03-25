@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 # for 3D visualization
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from matplotlib import cm
+from sklearn.metrics import confusion_matrix
 
 import numpy as np
 import atexit
@@ -15,6 +16,7 @@ import os
 import time
 import functools
 import json
+import string
 
 
 ## Utilities
@@ -163,7 +165,7 @@ def plot_both_errors(trainCEs, trainREs, testCE=None, testRE=None, pad=None, fig
     plt.plot(100*np.array(trainCEs), label='train set')
 
     if testCE is not None:
-        plt.plot([100*testCE]*pad, label='test set')
+        plt.plot([100*testCE]*pad, label='valid set')
     plt.legend()
 
     plt.subplot(2,1,2)
@@ -304,3 +306,22 @@ def get_hyperparameter_configurations(json_filepath):
         data = json.load(f)
 
     return data
+
+def plot_confusion_matrix(test_labels, test_predicted, n_classes=3, block=False):
+    conf_mat = confusion_matrix(test_labels, test_predicted)
+
+    alphabets = tuple(string.ascii_lowercase)[:n_classes]
+
+    fig, ax = plt.subplots()
+    cax = ax.matshow(conf_mat, cmap='Blues')
+    fig.colorbar(cax)
+
+    plt.xticks(np.arange(n_classes), alphabets)
+    plt.yticks(np.arange(n_classes), alphabets)
+
+    for (i, j), z in np.ndenumerate(conf_mat):
+        ax.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+
+    plt.show(block=False)
+
+    plt.savefig('test_confusion_matrix.png')
