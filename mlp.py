@@ -85,12 +85,28 @@ class MLP():
 
     # not working yet :(
     def backward_adam(self, x, a, h, b, y, d, ep, beta1, beta2, epsilon):
+                '''
+        Backprop pass - compute dW for given input and activations
+        x: single input vector (without bias, size=dim_in)
+        a: net vector on hidden layer (size=dim_hid)
+        h: activation of hidden layer (without bias, size=dim_hid)
+        b: net vector on output layer (size=dim_out)
+        y: output vector of network (size=dim_out)
+        d: single target vector (size=dim_out)
+        ep: current epoch
+        beta1: first moment hyperparameter
+        beta2: second moment hyperparameter
+        epsiolon: adam hyperparameter
+        '''
+
+        # first we compute gradients
         g_out = (d - y) * self.df_out(b)
         g_hid = self.W_out[:, :self.dim_hid].T@g_out * self.df_hid(a)
         
         dW_out = np.dot(add_bias(h), g_out.T).T
         dW_hid = np.dot(add_bias(x), g_hid.T).T        
 
+        # we calculate moments for gradients
         self.m_dW_out = beta1*self.m_dW_out + (1-beta1)*dW_out
         self.m_dW_hid = beta1*self.m_dW_hid + (1-beta1)*dW_hid
 

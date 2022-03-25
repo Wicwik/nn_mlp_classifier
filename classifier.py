@@ -61,6 +61,13 @@ class MLPClassifier(MLP):
 
 
     def minibatches(self, inputs, targets, batchsize, shuffle=False):
+        '''
+        Creates minibatches and lazy loads them 
+        inputs: input data
+        targets: target labels
+        batchsize: size of mini batch
+        shuffle: shuffle data
+        '''
         assert inputs.shape[1] == targets.shape[1]
 
         if shuffle:
@@ -122,6 +129,7 @@ class MLPClassifier(MLP):
             CE = 0
             RE = 0
 
+            # no cycles and minibatches -> very fast learning
             for batch in self.minibatches(inputs, targets, batchsize):
                 x, d, idx = batch
 
@@ -136,6 +144,7 @@ class MLPClassifier(MLP):
                 elif self.optimizer == 'adam':
                     m_dW_hid_corr, m_dW_out_corr, v_dW_hid_corr, v_dW_out_corr = self.backward_adam(x, a, h, b, y, d, ep+1, beta1, beta2, epsilon)
 
+                    # calculate the weight difference from Adam moments
                     self.W_hid += alpha*(m_dW_hid_corr/(np.sqrt(v_dW_hid_corr)+epsilon))
                     self.W_out += alpha*(m_dW_out_corr/(np.sqrt(v_dW_out_corr)+epsilon))
 

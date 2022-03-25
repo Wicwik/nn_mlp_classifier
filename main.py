@@ -1,3 +1,6 @@
+# Robert Belanec
+# I tried to write my code as self-explanatory as possible
+
 import numpy as np
 import random
 
