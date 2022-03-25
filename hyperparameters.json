@@ -1,0 +1,157 @@
+[
+	{
+		"dim_hid":20,
+		"w_init":"gauss",
+		"alpha":0.01, 
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"adam",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":5,
+		"w_init":"gauss",
+		"alpha":0.5, 
+		"batchsize":200,
+		"lr_schedule":true,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+
+	}, 
+	{
+		"dim_hid":5,
+		"w_init":"uniform",
+		"alpha":0.01, 
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"adam",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	}, 
+	{
+		"dim_hid":10,
+		"w_init":"uniform",
+		"alpha":0.4,
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":10,
+		"w_init":"gauss",
+		"alpha":0.5,
+		"batchsize":100,
+		"lr_schedule":true,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	}, 
+	{
+		"dim_hid":15,
+		"w_init":"uniform",
+		"alpha":0.01,
+		"batchsize":100,
+		"lr_schedule":true,
+		"eps":1000,
+		"optimizer":"adam",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	}, 
+	{
+		"dim_hid":20,
+		"w_init":"gauss",
+		"alpha":0.2,
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":30,
+		"w_init":"uniform",
+		"alpha":0.5,
+		"batchsize":300,
+		"lr_schedule":true,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":15,
+		"w_init":"gauss",
+		"alpha":0.001,
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"adam",
+		"f_hid": "tanh",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":15,
+		"w_init":"gauss",
+		"alpha":0.001,
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "sigmoid",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":15,
+		"w_init":"gauss",
+		"alpha":0.001,
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":15,
+		"w_init":"gauss",
+		"alpha":0.001,
+		"batchsize":100,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"sgd",
+		"f_hid": "sigmoid",
+		"f_out": "linear"
+	},
+	{
+		"dim_hid":100,
+		"w_init":"uniform",
+		"alpha":0.001,
+		"batchsize":200,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"adam",
+		"f_hid": "relu",
+		"f_out": "sigmoid"
+	},
+	{
+		"dim_hid":100,
+		"w_init":"gauss",
+		"alpha":0.001,
+		"batchsize":200,
+		"lr_schedule":false,
+		"eps":1000,
+		"optimizer":"adam",
+		"f_hid": "sigmoid",
+		"f_out": "sigmoid"
+	}
+]

@@ -19,28 +19,8 @@ test_inputs, test_labels = read_data('2d.tst.dat')
 test_inputs -= test_inputs.mean(axis=1, keepdims=True)
 test_inputs /= test_inputs.std(axis=1, keepdims=True)
 
-
-# Split train data to train and validation (20% of train data is validation)
-indices = np.arange(count)
-random.shuffle(indices)
-split = int(0.8*count)
-
-train_indices = indices[:split] 
-valid_indices  = indices[split:]
-
-train_inputs = inputs[:, train_indices]
-train_labels = labels[train_indices]
-
-valid_inputs = inputs[:, valid_indices]
-valid_labels = labels[valid_indices]
-
-print('Data shape after loading and spliting:')
-print('train_inputs: {} train_labels: {}'.format(train_inputs.shape, train_labels.shape))
-print('valid_inputs: {} valid_labels: {}'.format(valid_inputs.shape, valid_labels.shape))
-print('test_inputs: {} test_labels: {}'.format(test_inputs.shape, test_labels.shape))
-
 # Get some idea abot the data, by ploting it
-plot_dots(train_inputs, train_labels, None, test_inputs, test_labels, None, filename='all_data.png')
+plot_dots(inputs, labels, None, test_inputs, test_labels, None, filename='all_data.png')
 
 configs = get_hyperparameter_configurations(CONFIG_FILE)
 models = []
@@ -48,6 +28,20 @@ best_model_index = None
 best_model_validCE = np.inf
 
 for idx,conf in enumerate(configs):
+	# Split train data to train and validation (20% of train data is validation)
+	indices = np.arange(count)
+	random.shuffle(indices)
+	split = int(0.8*count)
+
+	train_indices = indices[:split] 
+	valid_indices  = indices[split:]
+
+	train_inputs = inputs[:, train_indices]
+	train_labels = labels[train_indices]
+
+	valid_inputs = inputs[:, valid_indices]
+	valid_labels = labels[valid_indices]
+
 	# Model creation
 	model = MLPClassifier(dim_in=dim, dim_hid=conf['dim_hid'], w_init=conf['w_init'], optimizer=conf['optimizer'], f_hid=conf['f_hid'], f_out=conf['f_out'], n_classes=np.max(labels)+1)
 
